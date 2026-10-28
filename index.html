@@ -28,17 +28,21 @@
         <input type="text" id="prenom" autocomplete="given-name" maxlength="80" required placeholder="Ex. : Camille" aria-describedby="prenomAide">
         <small class="champ-aide" id="prenomAide">Ton prénom sera ajouté au nom de chaque fichier.</small>
         <div class="settings">
+          <label for="shapeMode">Forme du support</label>
+          <select id="shapeMode"><option value="rectangle">Rectangle / carré</option><option value="free">Forme libre — PNG transparent</option></select>
+          <p id="shapeHelp" class="champ-aide" hidden>Le fichier de forme libre doit être fourni au format PNG sur fond transparent. Le contour suit les zones opaques (seuil 50 %) ; les trous et les éléments séparés sont aussi découpés. Vérifie le tracé avant utilisation.</p>
           <h3>Dimensions finales</h3>
+          <label id="ratioControl" hidden><input type="checkbox" id="keepRatio" checked> Conserver les proportions du PNG</label>
           <div class="dims-libre">
-            <div><label for="dimW">Largeur</label><div class="field"><input type="number" id="dimW" min="10" max="600" step="1" value="100" required><span>mm</span></div></div>
-            <div><label for="dimH">Hauteur</label><div class="field"><input type="number" id="dimH" min="10" max="600" step="1" value="100" required><span>mm</span></div></div>
-          </div><p class="champ-aide">De 10 à 600 mm par côté. Format rectangulaire ou carré.</p>
+            <div><label for="dimW">Largeur</label><div class="field"><input type="number" id="dimW" min="10" max="600" step="0.01" value="100" required><span>mm</span></div></div>
+            <div><label for="dimH">Hauteur</label><div class="field"><input type="number" id="dimH" min="10" max="600" step="0.01" value="100" required><span>mm</span></div></div>
+          </div><p class="champ-aide">De 10 à 600 mm par côté. En forme libre, dimensions hors tout, marges transparentes exclues. Les proportions du PNG sont conservées par défaut.</p>
         </div>
         <div class="settings">
           <h3>Ton image</h3>
-          <div class="upload"><span class="upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/></svg></span><label for="imageInput">Ajoute ton visuel</label><span class="champ-aide">PNG, JPG ou WebP</span><input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" onchange="chargeImage(this)"><img class="miniature" id="miniature" alt="Miniature de l’image importée"></div>
+          <div class="upload"><span class="upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/></svg></span><label for="imageInput">Ajoute ton visuel</label><span class="champ-aide" id="fileHelp">PNG, JPG ou WebP</span><input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" onchange="chargeImage(this)"><img class="miniature" id="miniature" alt="Miniature de l’image importée"></div>
           <p id="imageError" class="image-error" role="alert" hidden></p>
-          <p class="champ-aide">Pas besoin d’image pour les gabarits de placement et de découpe laser.</p>
+          <p class="champ-aide" id="uploadHelp">Pas besoin d’image pour les gabarits de placement et de découpe laser.</p>
         </div>
         <button class="procedure-btn" id="btnProcedure" onclick="ouvreProcedure()" aria-haspopup="dialog" aria-controls="modalProc"><span aria-hidden="true">☷</span> La procédure UV <span aria-hidden="true">↗</span></button>
       </section>
@@ -49,14 +53,14 @@
             <div class="empty-state" id="emptyState"><div class="empty-print" aria-hidden="true"><span class="paper-back"></span><span class="paper-front"><svg viewBox="0 0 80 80"><circle cx="51" cy="25" r="12"/><path d="M8 65 30 30 53 65ZM40 65 60 39 76 65Z"/></svg></span></div><h3>À chaque support,<br>son visuel.</h3><p>Ajoute une image pour ajuster son cadrage.<br>Les gabarits sont déjà disponibles.</p><span class="empty-format">CADRER · PLACER · IMPRIMER</span></div>
             <canvas class="zone" id="cvCadrage" height="260" hidden aria-label="Aperçu du cadrage : glisse l’image pour ajuster la zone imprimée"></canvas>
           </div>
-          <div class="preview-bottom"><div class="rang"><label for="zoom">Zoom</label><input type="range" id="zoom" min="1" max="3" step="0.01" value="1" disabled><span class="badge" id="dpiBadge">— dpi</span></div><p class="champ-aide">Glisse l’image pour la déplacer. Le cadre blanc délimite le support ; l’impression ajoute 2 mm de débord.</p></div>
+          <div class="preview-bottom"><div class="rang"><label for="zoom">Zoom</label><input type="range" id="zoom" min="1" max="3" step="0.01" value="1" disabled><span class="badge" id="dpiBadge">— dpi</span></div><p class="champ-aide" id="previewHelp">Glisse l’image pour la déplacer. Le cadre blanc délimite le support ; l’impression ajoute 2 mm de débord.</p></div>
         </section>
         <section class="panel exports" aria-labelledby="exportsTitre">
           <div class="panel-head"><h2 id="exportsTitre" class="section-title"><span class="step pink">03</span> Tes fichiers</h2><span class="preview-tag">Échelle 1:1</span></div>
           <div class="export-body"><div class="recap" id="recap"><div><span>Support</span><b id="recapDim">100 × 100 mm</b></div><div><span>Format PDF</span><b id="recapPlateau">104 × 104 mm</b></div></div>
             <div class="dl">
               <button id="btnGabarit" onclick="exportGabarit()"><span class="file-type">PDF</span><span><b>Placement</b><small>Le contour à imprimer sur le plateau</small></span><span class="download-arrow" aria-hidden="true">↓</span></button>
-              <button id="btnImpression" onclick="exportImpression()" disabled><span class="file-type">PDF</span><span><b>Impression UV</b><small>Ton visuel avec 2 mm de débord</small></span><span class="download-arrow" aria-hidden="true">↓</span></button>
+              <button id="btnImpression" onclick="exportImpression()" disabled><span class="file-type">PDF</span><span><b>Impression UV</b><small id="printHelp">Ton visuel avec 2 mm de débord</small></span><span class="download-arrow" aria-hidden="true">↓</span></button>
               <button id="btnLaser" onclick="exportLaser()"><span class="file-type">SVG</span><span><b>Découpe laser</b><small>Le contour seul, aux dimensions du support</small></span><span class="download-arrow" aria-hidden="true">↓</span></button>
             </div>
             <p class="export-note">Renseigne ton prénom pour télécharger. Ajoute une image pour activer le PDF d’impression.</p>
@@ -83,6 +87,7 @@
   <img id="lightboxImg" src="" alt="" onclick="event.stopPropagation();">
 </div>
 
+<script src="assets/freeform.js"></script>
 <script>
 /* ---------- constantes ---------- */
 const K = 72/25.4;      // pt par mm (PDF)
@@ -91,26 +96,40 @@ const DEBORD = 2;       // débord d'impression (mm)
 const MARGE = DEBORD;   // la page s'arrête au débord : aucune bande blanche extérieure
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-const state = {w:100, h:100, zoom:1, ox:.5, oy:.5, img:null};
+const state = {w:100, h:100, zoom:1, ox:.5, oy:.5, img:null, mode:'rectangle', shape:null};
+let imageRequest=0;
 
 /* ---------- image ---------- */
 function chargeImage(input){
   const f=input.files[0]; if(!f) return;
+  const request=++imageRequest;
   const erreur=document.getElementById('imageError');
+  if(state.mode==='free') {state.img=null;state.shape=null;rendu();}
+  if(state.mode==='free' && f.type!=='image/png') {erreur.textContent='La forme libre doit être fournie en PNG sur fond transparent.';erreur.hidden=false;return;}
   erreur.hidden=true;
-  const echec=()=>{erreur.textContent='Cette image ne peut pas être ouverte. Choisis un fichier PNG, JPG ou WebP.'; erreur.hidden=false;};
+  const echec=()=>{if(request!==imageRequest)return;erreur.textContent='Cette image ne peut pas être ouverte. Choisis un fichier PNG, JPG ou WebP.'; erreur.hidden=false;};
   const r=new FileReader();
   r.onerror=echec;
   r.onload=e=>{
     const im=new Image();
     im.onerror=echec;
     im.onload=()=>{
+      if(request!==imageRequest) return;
+      if(state.mode==='free') {
+        try {
+          if(im.width*im.height>4194304) throw new Error('Le PNG est trop grand. Réduis-le à 4 millions de pixels maximum.');
+          const canvas=document.createElement('canvas');canvas.width=im.width;canvas.height=im.height;
+          const context=canvas.getContext('2d');context.drawImage(im,0,0);
+          state.shape=traceAlpha(context.getImageData(0,0,im.width,im.height).data,im.width,im.height);
+          ajusteProportions('w');
+        } catch(error) {erreur.textContent=error.message;erreur.hidden=false;rendu();return;}
+      }
       state.img=im; state.zoom=1; state.ox=.5; state.oy=.5;
       document.getElementById('zoom').value=1;
-      document.getElementById('zoom').disabled=false;
+      document.getElementById('zoom').disabled=state.mode==='free';
       document.getElementById('emptyState').hidden=true;
       document.getElementById('cvCadrage').hidden=false;
-      document.getElementById('previewState').textContent='Glisse pour ajuster';
+      document.getElementById('previewState').textContent=state.mode==='free'?'Contour détecté':'Glisse pour ajuster';
       document.getElementById('miniature').src=e.target.result;
       document.getElementById('miniature').style.display='block';
       document.getElementById('btnGabarit').disabled=false;
@@ -126,6 +145,7 @@ function chargeImage(input){
 function cropRect(){
   const img=state.img;
   if(!img||!img.width) return null;
+  if(state.mode==='free') return state.shape;
   /*
     Le cadrage correspond au format fini du support. On réserve aussi, dans
     l'image source, les 2 mm nécessaires tout autour. Sans cette réserve,
@@ -159,9 +179,10 @@ function tuile(pxPerMm, bleedMm){
   const pxW=Math.max(1, Math.round(totalW*pxPerMm)), pxH=Math.max(1, Math.round(totalH*pxPerMm));
   const cv=document.createElement('canvas'); cv.width=pxW; cv.height=pxH;
   const ctx=cv.getContext('2d');
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,pxW,pxH);
+  if(state.mode!=='free') {ctx.fillStyle='#fff'; ctx.fillRect(0,0,pxW,pxH);}
   const cr=cropRect();
   if(!cr) return cv;
+  if(state.mode==='free') {ctx.drawImage(state.img,cr.x,cr.y,cr.w,cr.h,b*pxPerMm,b*pxPerMm,state.w*pxPerMm,state.h*pxPerMm);return cv;}
   const s=cr.w/state.w;
   ctx.drawImage(state.img, cr.x-b*s, cr.y-b*s, totalW*s, totalH*s, 0, 0, pxW, pxH);
   return cv;
@@ -171,6 +192,7 @@ function dessineCadrage(){
   const cv=document.getElementById('cvCadrage');
   const img=state.img;
   if(!img||!img.width) return;
+  if(state.mode==='free') {dessineForme(cv);return;}
   const lp=Math.min(larg(cv), 460*img.width/img.height), s=lp/img.width;
   cv.width=lp; cv.height=Math.round(img.height*s);
   const ctx=cv.getContext('2d');
@@ -190,17 +212,57 @@ function dessineCadrage(){
   document.getElementById('zoom').max=zoomMax().toFixed(2);
 }
 
+function formePaths(){
+  const shape=state.shape;
+  return shape.paths.map(path=>path.map(([x,y])=>[x/shape.w*state.w,y/shape.h*state.h]));
+}
+function dessineForme(cv){
+  const scale=Math.min((larg(cv)-24)/state.w,420/state.h);
+  cv.width=Math.ceil(state.w*scale+24);cv.height=Math.ceil(state.h*scale+24);
+  const ctx=cv.getContext('2d');
+  for(let y=0;y<cv.height;y+=12) for(let x=0;x<cv.width;x+=12) {ctx.fillStyle=(x/12+y/12)%2?'#e5dfed':'#fff';ctx.fillRect(x,y,12,12);}
+  const sh=state.shape;ctx.drawImage(state.img,sh.x,sh.y,sh.w,sh.h,12,12,state.w*scale,state.h*scale);
+  ctx.strokeStyle='#e00056';ctx.lineWidth=1.5;ctx.beginPath();
+  for(const path of formePaths()) {path.forEach(([x,y],i)=>ctx[i?'lineTo':'moveTo'](12+x*scale,12+y*scale));ctx.closePath();}ctx.stroke();
+  document.getElementById('dpiBadge').textContent=Math.round(Math.min(sh.w/state.w,sh.h/state.h)*25.4)+' dpi';
+}
+document.getElementById('shapeMode').addEventListener('change',e=>{
+  imageRequest++;state.mode=e.target.value;state.img=null;state.shape=null;drag=null;
+  document.getElementById('imageInput').value='';document.getElementById('miniature').style.display='none';document.getElementById('imageError').hidden=true;
+  const free=state.mode==='free';
+  document.getElementById('shapeHelp').hidden=!free;document.getElementById('ratioControl').hidden=!free;
+  document.getElementById('imageInput').accept=free?'image/png':'image/png,image/jpeg,image/webp';
+  document.getElementById('fileHelp').textContent=free?'PNG sur fond transparent obligatoire':'PNG, JPG ou WebP';
+  document.getElementById('uploadHelp').textContent=free?'Importe ta forme détourée pour générer le contour laser et le gabarit de placement.':'Pas besoin d’image pour les gabarits de placement et de découpe laser.';
+  document.getElementById('previewHelp').textContent=free?'Le trait rose montre les contours de découpe, trous compris. Le visuel entier est conservé, sans recadrage. Le PDF d’impression conserve la transparence, sans débord couleur ajouté.':'Glisse l’image pour la déplacer. Le cadre blanc délimite le support ; l’impression ajoute 2 mm de débord.';
+  document.getElementById('printHelp').textContent=free?'Ton PNG transparent, sans débord couleur':'Ton visuel avec 2 mm de débord';
+  document.querySelector('#emptyState p').textContent=free?'Ajoute un PNG sur fond transparent pour détecter la forme.':'Ajoute une image pour ajuster son cadrage. Les gabarits sont déjà disponibles.';
+  rendu();
+});
 function rendu(){
+  const ready=state.mode!=='free'||!!state.shape;
+  document.getElementById('btnGabarit').disabled=!ready;document.getElementById('btnLaser').disabled=!ready;
+  document.getElementById('btnImpression').disabled=!state.img||!ready;
+  document.getElementById('emptyState').hidden=!!state.img;document.getElementById('cvCadrage').hidden=!state.img;
+  document.getElementById('zoom').disabled=!state.img||state.mode==='free';
+  if(!state.img) {document.getElementById('previewState').textContent='En attente d’une image';document.getElementById('dpiBadge').textContent='— dpi';}
+
   document.getElementById('recapDim').textContent=state.w+' × '+state.h+' mm';
   document.getElementById('recapPlateau').textContent=(state.w+2*MARGE)+' × '+(state.h+2*MARGE)+' mm';
   dessineCadrage();
 }
 
+function ajusteProportions(changed){
+  if(state.mode!=='free'||!state.shape||!document.getElementById('keepRatio').checked) return;
+  if(changed==='w') {state.h=Math.round(state.w*state.shape.h/state.shape.w*100)/100;document.getElementById('dimH').value=state.h;}
+  else {state.w=Math.round(state.h*state.shape.w/state.shape.h*100)/100;document.getElementById('dimW').value=state.w;}
+}
+document.getElementById('keepRatio').addEventListener('change',()=>{ajusteProportions('w');rendu();});
 document.getElementById('dimW').addEventListener('input',e=>{
-  state.w=clamp(Math.round(+e.target.value||0),10,600); rendu();
+  state.w=clamp(+e.target.value||0,10,600); ajusteProportions('w'); rendu();
 });
 document.getElementById('dimH').addEventListener('input',e=>{
-  state.h=clamp(Math.round(+e.target.value||0),10,600); rendu();
+  state.h=clamp(+e.target.value||0,10,600); ajusteProportions('h'); rendu();
 });
 document.getElementById('zoom').addEventListener('input',e=>{
   state.zoom=+e.target.value; rendu();
@@ -208,6 +270,7 @@ document.getElementById('zoom').addEventListener('input',e=>{
 let drag=null;
 const cvC=document.getElementById('cvCadrage');
 cvC.addEventListener('pointerdown',e=>{
+  if(state.mode==='free') return;
   drag={x:e.clientX,y:e.clientY,ox:state.ox,oy:state.oy};
   if(cvC.setPointerCapture) cvC.setPointerCapture(e.pointerId);
 });
@@ -240,7 +303,7 @@ function ecrisPDF(pageMm, content, images, pageHmm, boxes){
       parts.push(u); pos+=u.length;
     } else { parts.push(s); pos+=s.length; }
   };
-  const nImg=images.length, nObj=5+nImg;
+  const nImg=images.length, nObj=5+nImg+images.filter(im=>im.alpha).length;
   push('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
   const obj=(n,body)=>{ off[n]=pos; push(n+' 0 obj\n'+body+'\nendobj\n'); };
   obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
@@ -255,12 +318,19 @@ function ecrisPDF(pageMm, content, images, pageHmm, boxes){
     +'/Resources << /Font << /F1 5 0 R >> '+(nImg?'/XObject << '+xo+'>> ':'')+'>> /Contents 4 0 R >>');
   obj(4,'<< /Length '+content.length+' >>\nstream\n'+content+'endstream');
   obj(5,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+  let maskId=6+nImg;
+  for(const im of images) if(im.alpha) im.maskId=maskId++;
   for(let i=0;i<nImg;i++){
     const im=images[i]; off[6+i]=pos;
     push((6+i)+' 0 obj\n<< /Type /XObject /Subtype /Image /Width '+im.w+' /Height '+im.h
-      +' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+im.data.length+' >>\nstream\n');
+      +(im.alpha?' /SMask '+im.maskId+' 0 R':'')+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+im.data.length+' >>\nstream\n');
     push(im.data);
     push('\nendstream\nendobj\n');
+  }
+  for(const im of images) if(im.alpha) {
+    off[im.maskId]=pos;
+    push(im.maskId+' 0 obj\n<< /Type /XObject /Subtype /Image /Width '+im.w+' /Height '+im.h+' /ColorSpace /DeviceGray /BitsPerComponent 8 /Length '+im.alpha.length+' >>\nstream\n');
+    push(im.alpha);push('\nendstream\nendobj\n');
   }
   const xref=pos;
   let x='xref\n0 '+(nObj+1)+'\n0000000000 65535 f \n';
@@ -277,6 +347,7 @@ function dl(url,nom){
 
 /* ---------- exports ---------- */
 function valideExport(){
+  if(state.mode==='free'&&!state.shape) return false;
   const prenom=document.getElementById('prenom');
   prenom.setCustomValidity(prenom.value.trim() ? '' : 'Indique ton prénom pour nommer le fichier.');
   for(const champ of [prenom, document.getElementById('dimW'), document.getElementById('dimH')]){
@@ -294,7 +365,7 @@ function exportLaser(){
   if(!valideExport()) return;
   const svg='<?xml version="1.0" encoding="UTF-8"?>\n'
     +'<svg xmlns="http://www.w3.org/2000/svg" width="'+state.w+'mm" height="'+state.h+'mm" viewBox="0 0 '+state.w+' '+state.h+'">\n'
-    +'  <rect x="0" y="0" width="'+state.w+'" height="'+state.h+'" fill="none" stroke="#ff0000" stroke-width="0.01"/>\n'
+    +(state.mode==='free' ? '  <path d="'+formePaths().map(path=>path.map(([x,y],i)=>(i?'L':'M')+x.toFixed(5)+' '+y.toFixed(5)).join(' ')+' Z').join(' ')+'" fill="none" stroke="#ff0000" stroke-width="0.01"/>\n' : '  <rect x="0" y="0" width="'+state.w+'" height="'+state.h+'" fill="none" stroke="#ff0000" stroke-width="0.01"/>\n')
     +'</svg>\n';
   dl(URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'})),nomFichier('decoupe-laser','svg'));
 }
@@ -303,7 +374,16 @@ function exportImpression(){
   const pageW=state.w+2*MARGE, pageH=state.h+2*MARGE, pHpt=pageH*K;
   const totalW=state.w+2*DEBORD, totalH=state.h+2*DEBORD;
   const cv=tuile(DPI/25.4, DEBORD);
-  const imgs=[{data:jpegBin(cv), w:cv.width, h:cv.height}];
+  let alpha;
+  if(state.mode==='free') {
+    const pixels=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data;
+    alpha=new Uint8Array(cv.width*cv.height);
+    for(let i=0;i<alpha.length;i++) alpha[i]=pixels[i*4+3];
+    // JPEG needs opaque RGB; use the unassociated colors under the soft mask.
+    for(let i=0;i<alpha.length;i++) pixels[i*4+3]=255;
+    cv.getContext('2d').putImageData(new ImageData(pixels,cv.width,cv.height),0,0);
+  }
+  const imgs=[{data:jpegBin(cv), w:cv.width, h:cv.height, alpha}];
   const x=(MARGE-DEBORD)*K, y=pHpt-(MARGE-DEBORD)*K-totalH*K;
   const c='q '+(totalW*K).toFixed(3)+' 0 0 '+(totalH*K).toFixed(3)+' '
     +x.toFixed(3)+' '+y.toFixed(3)+' cm /Im0 Do Q\n';
@@ -319,6 +399,10 @@ function exportGabarit(){
   const tw=state.w, th=state.h, x=MARGE, y=MARGE;
   const Y = mm => pHpt - mm*K;
   let c='0 G 0.8 w\n';
+  if(state.mode==='free') {
+    for(const path of formePaths()) {c+=path.map(([px,py],i)=>((x+px)*K).toFixed(5)+' '+Y(y+py).toFixed(5)+' '+(i?'l':'m')).join('\n')+'\nh S\n';}
+    dl(URL.createObjectURL(ecrisPDF(pageW,c,[],pageH)),nomFichier('gabarit-placement','pdf'));return;
+  }
   c+=(x*K).toFixed(2)+' '+Y(y+th).toFixed(2)+' '
     +(tw*K).toFixed(2)+' '+(th*K).toFixed(2)+' re S\n';
   c+='[3 3] 0 d 0.4 w\n'
