@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UV / Print — Digital Factory</title>
+<meta name="description" content="Prépare ton impression UV : cadrage, gabarit de placement, PDF avec débord et contour SVG pour la découpe laser.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="assets/uvprint.css">
+</head>
+<body class="uvprint">
+
+<div class="wrap">
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="UV Print — accueil"><span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H3V9h18v9h-3M6 14h12v7H6z"/><path d="M17 11h1"/></svg></span>uv / print</a>
+    <div class="factory-signature" aria-label="Digital Factory · Le Forem"><span class="factory-name">Digital Factory</span><span class="factory-forem">Le Forem</span></div>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="titre">
+      <div><p class="eyebrow">L’atelier d’impression UV</p><h1 id="titre">Ton visuel.<br>Sur <em>ton support.</em></h1><p class="sub">Prépare les dimensions, cadre ton image et récupère tes fichiers.<br>Du premier repère à la dernière couleur.</p></div>
+      <div class="print-stamp" aria-hidden="true"><div class="ink-dots"><i></i><i></i><i></i></div><strong>Fais bonne<br>impression.</strong><span>UV / PRINT</span></div>
+    </section>
+    <div class="workflow" aria-label="Les étapes"><span><b>01</b> Prépare ton support</span><span><b>02</b> Cadre ton visuel</span><span><b>03</b> Exporte tes fichiers</span></div>
+    <div class="studio-grid">
+      <section class="panel controls" aria-labelledby="supportTitre">
+        <h2 id="supportTitre" class="section-title"><span class="step">01</span> Ton support</h2>
+        <label for="prenom">Prénom du stagiaire <span class="required">requis</span></label>
+        <input type="text" id="prenom" autocomplete="given-name" maxlength="80" required placeholder="Ex. : Camille" aria-describedby="prenomAide">
+        <small class="champ-aide" id="prenomAide">Ton prénom sera ajouté au nom de chaque fichier.</small>
+        <div class="settings">
+          <h3>Dimensions finales</h3>
+          <div class="dims-libre">
+            <div><label for="dimW">Largeur</label><div class="field"><input type="number" id="dimW" min="10" max="600" step="1" value="100" required><span>mm</span></div></div>
+            <div><label for="dimH">Hauteur</label><div class="field"><input type="number" id="dimH" min="10" max="600" step="1" value="100" required><span>mm</span></div></div>
+          </div><p class="champ-aide">De 10 à 600 mm par côté. Format rectangulaire ou carré.</p>
+        </div>
+        <div class="settings">
+          <h3>Ton image</h3>
+          <div class="upload"><span class="upload-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/></svg></span><label for="imageInput">Ajoute ton visuel</label><span class="champ-aide">PNG, JPG ou WebP</span><input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" onchange="chargeImage(this)"><img class="miniature" id="miniature" alt="Miniature de l’image importée"></div>
+          <p id="imageError" class="image-error" role="alert" hidden></p>
+          <p class="champ-aide">Pas besoin d’image pour les gabarits de placement et de découpe laser.</p>
+        </div>
+        <button class="procedure-btn" id="btnProcedure" onclick="ouvreProcedure()" aria-haspopup="dialog" aria-controls="modalProc"><span aria-hidden="true">☷</span> La procédure UV <span aria-hidden="true">↗</span></button>
+      </section>
+      <div class="work-area">
+        <section class="panel preview-panel" aria-labelledby="cadrageTitre">
+          <div class="panel-head"><h2 id="cadrageTitre" class="section-title"><span class="step cyan">02</span> Ton cadrage</h2><span class="preview-tag" id="previewState">En attente d’une image</span></div>
+          <div class="stage">
+            <div class="empty-state" id="emptyState"><div class="empty-print" aria-hidden="true"><span class="paper-back"></span><span class="paper-front"><svg viewBox="0 0 80 80"><circle cx="51" cy="25" r="12"/><path d="M8 65 30 30 53 65ZM40 65 60 39 76 65Z"/></svg></span></div><h3>À chaque support,<br>son visuel.</h3><p>Ajoute une image pour ajuster son cadrage.<br>Les gabarits sont déjà disponibles.</p><span class="empty-format">CADRER · PLACER · IMPRIMER</span></div>
+            <canvas class="zone" id="cvCadrage" height="260" hidden aria-label="Aperçu du cadrage : glisse l’image pour ajuster la zone imprimée"></canvas>
+          </div>
+          <div class="preview-bottom"><div class="rang"><label for="zoom">Zoom</label><input type="range" id="zoom" min="1" max="3" step="0.01" value="1" disabled><span class="badge" id="dpiBadge">— dpi</span></div><p class="champ-aide">Glisse l’image pour la déplacer. Le cadre blanc délimite le support ; l’impression ajoute 2 mm de débord.</p></div>
+        </section>
+        <section class="panel exports" aria-labelledby="exportsTitre">
+          <div class="panel-head"><h2 id="exportsTitre" class="section-title"><span class="step pink">03</span> Tes fichiers</h2><span class="preview-tag">Échelle 1:1</span></div>
+          <div class="export-body"><div class="recap" id="recap"><div><span>Support</span><b id="recapDim">100 × 100 mm</b></div><div><span>Format PDF</span><b id="recapPlateau">104 × 104 mm</b></div></div>
+            <div class="dl">
+              <button id="btnGabarit" onclick="exportGabarit()"><span class="file-type">PDF</span><span><b>Placement</b><small>Le contour à imprimer sur le plateau</small></span><span class="download-arrow" aria-hidden="true">↓</span></button>
+              <button id="btnImpression" onclick="exportImpression()" disabled><span class="file-type">PDF</span><span><b>Impression UV</b><small>Ton visuel avec 2 mm de débord</small></span><span class="download-arrow" aria-hidden="true">↓</span></button>
+              <button id="btnLaser" onclick="exportLaser()"><span class="file-type">SVG</span><span><b>Découpe laser</b><small>Le contour seul, aux dimensions du support</small></span><span class="download-arrow" aria-hidden="true">↓</span></button>
+            </div>
+            <p class="export-note">Renseigne ton prénom pour télécharger. Ajoute une image pour activer le PDF d’impression.</p>
+            <details class="export-help"><summary>Comment utiliser ces fichiers ?</summary><p><b>Impression UV :</b> imprime le gabarit de placement sur le plateau, pose le support dans le trait plein, règle la hauteur, puis imprime ton visuel.</p><p><b>Découpe laser :</b> importe le SVG en millimètres à 100 %. Il ne contient ni image ni débord, et n’applique aucune compensation du trait de coupe. Utilise un matériau compatible avec ta machine.</p></details>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer><span><strong>Digital Factory · Le Forem</strong> <span class="footer-divider">/</span> uv / print</span><span>Ton image reste dans ton navigateur.</span></footer>
+</div>
+
+<div class="modal" id="modalProc" role="dialog" aria-modal="true" aria-label="Procédure d’impression UV">
+  <div class="box">
+    <div id="procEcran"></div>
+    <div class="actions" style="justify-content:flex-end; margin-top:22px; border-top:1px solid var(--border); padding-top:16px">
+      <button class="btn2" id="fermerProcedure" onclick="fermeProcedure()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="modalImg" onclick="fermeLightbox()">
+  <button class="lightbox-close" onclick="fermeLightbox()" aria-label="Fermer">&times;</button>
+  <img id="lightboxImg" src="" alt="" onclick="event.stopPropagation();">
+</div>
+
+<script>
+/* ---------- constantes ---------- */
+const K = 72/25.4;      // pt par mm (PDF)
+const DPI = 300;        // résolution d'export
+const DEBORD = 2;       // débord d'impression (mm)
+const MARGE = DEBORD;   // la page s'arrête au débord : aucune bande blanche extérieure
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+const state = {w:100, h:100, zoom:1, ox:.5, oy:.5, img:null};
+
+/* ---------- image ---------- */
+function chargeImage(input){
+  const f=input.files[0]; if(!f) return;
+  const erreur=document.getElementById('imageError');
+  erreur.hidden=true;
+  const echec=()=>{erreur.textContent='Cette image ne peut pas être ouverte. Choisis un fichier PNG, JPG ou WebP.'; erreur.hidden=false;};
+  const r=new FileReader();
+  r.onerror=echec;
+  r.onload=e=>{
+    const im=new Image();
+    im.onerror=echec;
+    im.onload=()=>{
+      state.img=im; state.zoom=1; state.ox=.5; state.oy=.5;
+      document.getElementById('zoom').value=1;
+      document.getElementById('zoom').disabled=false;
+      document.getElementById('emptyState').hidden=true;
+      document.getElementById('cvCadrage').hidden=false;
+      document.getElementById('previewState').textContent='Glisse pour ajuster';
+      document.getElementById('miniature').src=e.target.result;
+      document.getElementById('miniature').style.display='block';
+      document.getElementById('btnGabarit').disabled=false;
+      document.getElementById('btnImpression').disabled=false;
+      rendu();
+    };
+    im.src=e.target.result;
+  };
+  r.readAsDataURL(f);
+}
+
+/* ---------- géométrie (cadrage rectangulaire libre) ---------- */
+function cropRect(){
+  const img=state.img;
+  if(!img||!img.width) return null;
+  /*
+    Le cadrage correspond au format fini du support. On réserve aussi, dans
+    l'image source, les 2 mm nécessaires tout autour. Sans cette réserve,
+    l'export tenterait de lire hors de la photo et le débord deviendrait blanc.
+  */
+  const baseScale=Math.min(
+    img.width/(state.w+2*DEBORD),
+    img.height/(state.h+2*DEBORD)
+  );
+  const s=baseScale/state.zoom;
+  const w=state.w*s, h=state.h*s;
+  const pad=DEBORD*s;
+  const cx=clamp(state.ox*img.width, w/2+pad, img.width-w/2-pad);
+  const cy=clamp(state.oy*img.height, h/2+pad, img.height-h/2-pad);
+  return {x:cx-w/2, y:cy-h/2, w, h};
+}
+function effDpi(){ const c=cropRect(); return c ? c.w/state.w*25.4 : 0; }
+function zoomMax(){
+  const img=state.img; if(!img||!img.width) return 2;
+  const baseScale=Math.min(
+    img.width/(state.w+2*DEBORD),
+    img.height/(state.h+2*DEBORD)
+  );
+  return clamp((baseScale*25.4)/150, 1.01, 3);
+}
+function larg(el){ return Math.min(680, (el.parentElement.clientWidth||640)-2); }
+
+function tuile(pxPerMm, bleedMm){
+  const b=bleedMm||0;
+  const totalW=state.w+2*b, totalH=state.h+2*b;
+  const pxW=Math.max(1, Math.round(totalW*pxPerMm)), pxH=Math.max(1, Math.round(totalH*pxPerMm));
+  const cv=document.createElement('canvas'); cv.width=pxW; cv.height=pxH;
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,pxW,pxH);
+  const cr=cropRect();
+  if(!cr) return cv;
+  const s=cr.w/state.w;
+  ctx.drawImage(state.img, cr.x-b*s, cr.y-b*s, totalW*s, totalH*s, 0, 0, pxW, pxH);
+  return cv;
+}
+
+function dessineCadrage(){
+  const cv=document.getElementById('cvCadrage');
+  const img=state.img;
+  if(!img||!img.width) return;
+  const lp=Math.min(larg(cv), 460*img.width/img.height), s=lp/img.width;
+  cv.width=lp; cv.height=Math.round(img.height*s);
+  const ctx=cv.getContext('2d');
+  ctx.drawImage(img,0,0,cv.width,cv.height);
+  const cr=cropRect(); if(!cr) return;
+  ctx.fillStyle='rgba(38,37,31,.55)';
+  ctx.fillRect(0,0,cv.width,cr.y*s);
+  ctx.fillRect(0,(cr.y+cr.h)*s,cv.width,cv.height);
+  ctx.fillRect(0,cr.y*s,cr.x*s,cr.h*s);
+  ctx.fillRect((cr.x+cr.w)*s,cr.y*s,cv.width,cr.h*s);
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2.5;
+  ctx.strokeRect(cr.x*s,cr.y*s,cr.w*s,cr.h*s);
+  const d=Math.round(effDpi());
+  const bd=document.getElementById('dpiBadge');
+  bd.textContent=d+' dpi';
+  bd.className='badge '+(d>=250?'ok':(d>=110?'warn':'alerte'));
+  document.getElementById('zoom').max=zoomMax().toFixed(2);
+}
+
+function rendu(){
+  document.getElementById('recapDim').textContent=state.w+' × '+state.h+' mm';
+  document.getElementById('recapPlateau').textContent=(state.w+2*MARGE)+' × '+(state.h+2*MARGE)+' mm';
+  dessineCadrage();
+}
+
+document.getElementById('dimW').addEventListener('input',e=>{
+  state.w=clamp(Math.round(+e.target.value||0),10,600); rendu();
+});
+document.getElementById('dimH').addEventListener('input',e=>{
+  state.h=clamp(Math.round(+e.target.value||0),10,600); rendu();
+});
+document.getElementById('zoom').addEventListener('input',e=>{
+  state.zoom=+e.target.value; rendu();
+});
+let drag=null;
+const cvC=document.getElementById('cvCadrage');
+cvC.addEventListener('pointerdown',e=>{
+  drag={x:e.clientX,y:e.clientY,ox:state.ox,oy:state.oy};
+  if(cvC.setPointerCapture) cvC.setPointerCapture(e.pointerId);
+});
+cvC.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  const rect=cvC.getBoundingClientRect();
+  state.ox=clamp(drag.ox-(e.clientX-drag.x)/rect.width,0,1);
+  state.oy=clamp(drag.oy-(e.clientY-drag.y)/rect.height,0,1);
+  rendu();
+});
+cvC.addEventListener('pointerup',()=>{drag=null;});
+cvC.addEventListener('pointercancel',()=>{drag=null;});
+window.addEventListener('resize',rendu);
+
+/* ---------- écrivain PDF : vecteur + images JPEG, sans bibliothèque ---------- */
+function jpegBin(cv){
+  const b64=cv.toDataURL('image/jpeg',0.95).split(',')[1];
+  const bin=atob(b64), u=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+  return u;
+}
+function ecrisPDF(pageMm, content, images, pageHmm, boxes){
+  images = images||[];
+  const pW=pageMm*K, pH=(pageHmm||pageMm)*K;
+  const parts=[], off=[]; let pos=0;
+  const push=s=>{
+    if(typeof s==='string'){
+      const u=new Uint8Array(s.length);
+      for(let i=0;i<s.length;i++) u[i]=s.charCodeAt(i)&0xFF;
+      parts.push(u); pos+=u.length;
+    } else { parts.push(s); pos+=s.length; }
+  };
+  const nImg=images.length, nObj=5+nImg;
+  push('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  const obj=(n,body)=>{ off[n]=pos; push(n+' 0 obj\n'+body+'\nendobj\n'); };
+  obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2,'<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  let xo='';
+  for(let i=0;i<nImg;i++) xo+='/Im'+i+' '+(6+i)+' 0 R ';
+  const pdfBox=box=>'['+box.map(mm=>(mm*K).toFixed(3)).join(' ')+']';
+  let pageBoxes='';
+  if(boxes&&boxes.trim) pageBoxes+=' /TrimBox '+pdfBox(boxes.trim);
+  if(boxes&&boxes.bleed) pageBoxes+=' /BleedBox '+pdfBox(boxes.bleed);
+  obj(3,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+pW.toFixed(3)+' '+pH.toFixed(3)+']'+pageBoxes+' '
+    +'/Resources << /Font << /F1 5 0 R >> '+(nImg?'/XObject << '+xo+'>> ':'')+'>> /Contents 4 0 R >>');
+  obj(4,'<< /Length '+content.length+' >>\nstream\n'+content+'endstream');
+  obj(5,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+  for(let i=0;i<nImg;i++){
+    const im=images[i]; off[6+i]=pos;
+    push((6+i)+' 0 obj\n<< /Type /XObject /Subtype /Image /Width '+im.w+' /Height '+im.h
+      +' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+im.data.length+' >>\nstream\n');
+    push(im.data);
+    push('\nendstream\nendobj\n');
+  }
+  const xref=pos;
+  let x='xref\n0 '+(nObj+1)+'\n0000000000 65535 f \n';
+  for(let n=1;n<=nObj;n++) x+=String(off[n]).padStart(10,'0')+' 00000 n \n';
+  push(x);
+  push('trailer\n<< /Size '+(nObj+1)+' /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF\n');
+  return new Blob(parts,{type:'application/pdf'});
+}
+function dl(url,nom){
+  const a=document.createElement('a'); a.href=url; a.download=nom;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),8000);
+}
+
+/* ---------- exports ---------- */
+function valideExport(){
+  const prenom=document.getElementById('prenom');
+  prenom.setCustomValidity(prenom.value.trim() ? '' : 'Indique ton prénom pour nommer le fichier.');
+  for(const champ of [prenom, document.getElementById('dimW'), document.getElementById('dimH')]){
+    if(!champ.reportValidity()) return false;
+  }
+  return true;
+}
+document.getElementById('prenom').addEventListener('input',e=>e.target.setCustomValidity(''));
+function nomFichier(type,extension){
+  const prenom=document.getElementById('prenom').value.trim().normalize('NFC')
+    .replace(/[^\p{L}\p{N}\p{M}_-]+/gu,'-').replace(/^-+|-+$/g,'') || 'stagiaire';
+  return prenom+'_'+type+'_'+state.w+'x'+state.h+'mm.'+extension;
+}
+function exportLaser(){
+  if(!valideExport()) return;
+  const svg='<?xml version="1.0" encoding="UTF-8"?>\n'
+    +'<svg xmlns="http://www.w3.org/2000/svg" width="'+state.w+'mm" height="'+state.h+'mm" viewBox="0 0 '+state.w+' '+state.h+'">\n'
+    +'  <rect x="0" y="0" width="'+state.w+'" height="'+state.h+'" fill="none" stroke="#ff0000" stroke-width="0.01"/>\n'
+    +'</svg>\n';
+  dl(URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'})),nomFichier('decoupe-laser','svg'));
+}
+function exportImpression(){
+  if(!valideExport() || !state.img) return;
+  const pageW=state.w+2*MARGE, pageH=state.h+2*MARGE, pHpt=pageH*K;
+  const totalW=state.w+2*DEBORD, totalH=state.h+2*DEBORD;
+  const cv=tuile(DPI/25.4, DEBORD);
+  const imgs=[{data:jpegBin(cv), w:cv.width, h:cv.height}];
+  const x=(MARGE-DEBORD)*K, y=pHpt-(MARGE-DEBORD)*K-totalH*K;
+  const c='q '+(totalW*K).toFixed(3)+' 0 0 '+(totalH*K).toFixed(3)+' '
+    +x.toFixed(3)+' '+y.toFixed(3)+' cm /Im0 Do Q\n';
+  const boxes={
+    trim:[MARGE, MARGE, MARGE+state.w, MARGE+state.h],
+    bleed:[MARGE-DEBORD, MARGE-DEBORD, MARGE+state.w+DEBORD, MARGE+state.h+DEBORD]
+  };
+  dl(URL.createObjectURL(ecrisPDF(pageW, c, imgs, pageH, boxes)), nomFichier('impression','pdf'));
+}
+function exportGabarit(){
+  if(!valideExport()) return;
+  const pageW=state.w+2*MARGE, pageH=state.h+2*MARGE, pHpt=pageH*K;
+  const tw=state.w, th=state.h, x=MARGE, y=MARGE;
+  const Y = mm => pHpt - mm*K;
+  let c='0 G 0.8 w\n';
+  c+=(x*K).toFixed(2)+' '+Y(y+th).toFixed(2)+' '
+    +(tw*K).toFixed(2)+' '+(th*K).toFixed(2)+' re S\n';
+  c+='[3 3] 0 d 0.4 w\n'
+    +((x-DEBORD)*K).toFixed(2)+' '+Y(y+th+DEBORD).toFixed(2)+' '
+    +((tw+2*DEBORD)*K).toFixed(2)+' '+((th+2*DEBORD)*K).toFixed(2)+' re S\n'
+    +'[] 0 d 0.8 w\n';
+  c+='1.2 w 0 '+Y(0).toFixed(2)+' m '+(16*K).toFixed(2)+' '+Y(0).toFixed(2)+' l S\n'
+    +'0 '+Y(0).toFixed(2)+' m 0 '+Y(16).toFixed(2)+' l S\n';
+  c+='BT /F1 7 Tf '+(20*K).toFixed(2)+' '+Y(8).toFixed(2)+' Td (origine machine) Tj ET\n';
+  c+='BT /F1 6 Tf '+(MARGE*K).toFixed(2)+' '+Y(pageH-2).toFixed(2)+' Td '
+    +'(support '+tw+' x '+th+' mm - debord '+DEBORD+' mm - trait plein = support) Tj ET\n';
+  dl(URL.createObjectURL(ecrisPDF(pageW, c, [], pageH)), nomFichier('gabarit-placement','pdf'));
+}
+
+/* ---------- procédure courte ---------- */
+function etapesProcedure(){
+  return [
+    {texte:'Vérifier que le support <b>MO-240</b> est bien sélectionné dans VersaWorks.', img:'assets/versaworks/etape-1.jpg'},
+    {texte:'Dans la barre d’outils, ouvrir <b>Paramètres</b> (icône engrenage).', img:'assets/versaworks/etape-2.jpg'},
+    {texte:'Dans la section Qualité, choisir le type de support : <b>Generic</b> pour toute impression couleur ou blanc ; <b>Special Effect</b> pour l’embossage, le vernis mat ou brillant.', img:'assets/versaworks/etape-3.jpg'},
+    {texte:'Toujours dans Qualité, choisir la qualité d’impression : pour le gabarit, <b>Draft</b> suffit — un simple tracé de positionnement, pas une image à restituer fidèlement.', img:'assets/versaworks/etape-4.jpg'},
+    {texte:'Sur la machine, règle la <b>hauteur du plateau</b> avec le profil <b>Gabarit Tape</b>, puis imprime le <b>gabarit</b> (fichier 1) directement sur le plateau.'},
+    {texte:'Place le support bien à l’intérieur du contour en trait plein.', img:'assets/impression-uv/etape-6.png'},
+    {texte:'Règle à nouveau la <b>hauteur du plateau</b> directement sur la machine avec un <b>profil adapté à ton support</b> : le support a de l’épaisseur et la distance entre la tête d’impression et sa surface a changé depuis l’impression du gabarit.', cle:true},
+    {texte:'Impression couleur : sélectionner Mode → Couleur (CMYK/Or/Re) : <b>12 passes</b> pour la meilleure qualité, <b>10 passes</b> pour aller plus vite. Qualité d’impression : Standard.', img:'assets/versaworks/etape-6.jpg'},
+    {texte:'Si tu as besoin d’une <b>sous-couche blanche</b>, sélectionne le mode multicouche adapté : <b>White → CMYK/Or/Re 12p</b> pour imprimer le blanc avant la couleur, ou <b>CMYK/Or/Re → White 12p</b> pour imprimer le blanc après la couleur. Clique ensuite sur <b>Générer une plaque de couleur spéciale</b>, puis choisis Forme → <b>Zone d’impression</b>. L’ordre dépend du support et du côté depuis lequel le visuel sera regardé.', cle:true,
+      medias:[{s:'assets/versaworks/etape-5a.jpg', label:'Choisir le mode avec blanc'},{s:'assets/versaworks/etape-5b.jpg', label:'Générer une plaque de couleur spéciale'},{s:'assets/versaworks/etape-5c.jpg', label:'Résultat attendu'}]},
+    {texte:'Valider, puis cliquer sur <b>Imprimer</b>.', img:'assets/versaworks/etape-7.jpg'}
+  ];
+}
+function ouvreLightbox(src){
+  document.getElementById('lightboxImg').src=src;
+  document.getElementById('modalImg').classList.add('on');
+}
+function fermeLightbox(){ document.getElementById('modalImg').classList.remove('on'); }
+function ouvreProcedure(){
+  const uneImage=(src,alt)=>'<span class="pc-media"><span class="pc-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><small>'+src+'</small></span><img src="'+src+'" alt="'+alt+'" onclick="event.preventDefault();event.stopPropagation();ouvreLightbox(this.src);" onerror="this.remove()"></span>';
+  const check=etapesProcedure().map((e,i)=>{
+    const n=i+1;
+    const media=e.medias
+      ? '<span class="pc-media-row">'+e.medias.map(m=>'<span class="pc-media-item">'+uneImage(m.s,'Illustration étape '+n)+'<small class="pc-media-cap">'+m.label+'</small></span>').join('')+'</span>'
+      : (e.img ? uneImage(e.img,'Illustration étape '+n) : '');
+    return '<label class="pc'+(e.cle?' pc-cle':'')+'"><input type="checkbox"><span class="pc-n">'+n+'</span><span class="pc-body"><span class="pc-txt">'+(e.cle?'<span class="pc-tag">Point clé</span>':'')+e.texte+'</span>'+media+'</span></label>';
+  }).join('');
+  document.getElementById('procEcran').innerHTML=
+    '<h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Procédure</h2>'
+    +'<p class="plan-sous">Un support, dans l’ordre</p>'
+    +'<p class="plan-hint">Coche chaque étape au fur et à mesure. Touche une photo pour l’agrandir.</p>'
+    +'<div class="plan-check">'+check+'</div>';
+  document.getElementById('modalProc').classList.add('on');
+  document.getElementById('fermerProcedure').focus();
+}
+function fermeProcedure(){ document.getElementById('modalProc').classList.remove('on'); document.getElementById('btnProcedure').focus(); }
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('modalImg').classList.contains('on')) fermeLightbox();
+    else if(document.getElementById('modalProc').classList.contains('on')) fermeProcedure();
+  }
+});
+
+rendu();
+</script>
+</body>
+</html>
+
+
